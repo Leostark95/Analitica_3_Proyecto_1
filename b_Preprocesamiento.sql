@@ -82,23 +82,6 @@ WHERE EXISTS (
     WHERE r1.EmployeeID = data_2016.EmployeeID
 );
 
--- Limpieza y transformación de datos
--- Eliminar columnas innecesarias
-ALTER TABLE data_2015 DROP COLUMN InfoDate;
-ALTER TABLE data_2015 DROP COLUMN DateSurvey;
-ALTER TABLE data_2015 DROP COLUMN SurveyDate;
-ALTER TABLE data_2015 DROP COLUMN retirementDate;
-ALTER TABLE data_2015 DROP COLUMN resignationReason;
-ALTER TABLE data_2015 DROP COLUMN retirementType;
-ALTER TABLE data_2015 DROP COLUMN StandardHours;
-
-ALTER TABLE data_2016 DROP COLUMN InfoDate;
-ALTER TABLE data_2016 DROP COLUMN DateSurvey;
-ALTER TABLE data_2016 DROP COLUMN SurveyDate;
-ALTER TABLE data_2016 DROP COLUMN retirementDate;
-ALTER TABLE data_2016 DROP COLUMN resignationReason;
-ALTER TABLE data_2016 DROP COLUMN retirementType;
-ALTER TABLE data_2016 DROP COLUMN StandardHours;
 
 -- Renombrar la tabla data_2016 para predecir datos de 2017
 ALTER TABLE data_2016 RENAME TO data_for_2017_prediction;

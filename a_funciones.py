@@ -12,6 +12,7 @@ from plotly.subplots import make_subplots
 import plotly.graph_objects as go
 import plotly.express as px
 
+
 # Las fucniones más útiles para el desarrollo del proyecto están en este script
 
 # Función que permite ejecutar un archivo  con extensión .sql que contenga varias consultas
