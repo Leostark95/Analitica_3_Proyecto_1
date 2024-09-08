@@ -1,4 +1,4 @@
--- Crear las tablas para empleados, general, manager y retiros por año (2015 y 2016)
+--Crear las tablas para empleados, general, manager y retiros por año (2015 y 2016)
 WITH employee_filtered AS (
     SELECT EmployeeID, DateSurvey, EnvironmentSatisfaction, JobSatisfaction, WorkLifeBalance
     FROM employee_survey_data
@@ -73,4 +73,3 @@ FROM tabla_2016;
 
 -- Renombrar tabla final 2016 para predecir
 ALTER TABLE tabla_limpia_2016 RENAME TO tabla_prediccion_2016;
-
