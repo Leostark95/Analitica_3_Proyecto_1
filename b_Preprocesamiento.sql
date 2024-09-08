@@ -1,4 +1,4 @@
---Crear las tablas para empleados, general, manager y retiros por año (2015 y 2016)
+-- Crear las tablas para empleados, general, manager y retiros por año (2015 y 2016)
 WITH employee_filtered AS (
     SELECT EmployeeID, DateSurvey, EnvironmentSatisfaction, JobSatisfaction, WorkLifeBalance
     FROM employee_survey_data

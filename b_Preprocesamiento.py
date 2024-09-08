@@ -5,10 +5,10 @@ import pandas as pd
 conn = sqlite3.connect('my_database.db')
 
 # Leer los archivos CSV con pandas
-general_data = pd.read_csv('data\general_data.csv')
-employee_survey_data = pd.read_csv('data\employee_survey_data.csv')
-manager_survey_data = pd.read_csv('data\manager_survey.csv')
-retirement_info = pd.read_csv('data\\retirement_info.csv')
+general_data = pd.read_csv('data/general_data.csv')
+employee_survey_data = pd.read_csv('data/employee_survey_data.csv')
+manager_survey_data = pd.read_csv('data/manager_survey.csv')
+retirement_info = pd.read_csv('data/retirement_info.csv')
 
 # Insertar los datos en tablas de SQLite
 general_data.to_sql('general_data', conn, if_exists='replace', index=False)
