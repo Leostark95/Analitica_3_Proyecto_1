@@ -1,95 +1,75 @@
--- Crear tablas filtradas por año para empleados, general, manager, y retiros (2015 y 2016)
-CREATE TABLE employee_2015 AS
-SELECT * 
-FROM employee
-WHERE DateSurvey = '2015-12-31 00:00:00';
+-- Crear las tablas para empleados, general, manager y retiros por año (2015 y 2016)
+WITH employee_filtered AS (
+    SELECT EmployeeID, DateSurvey, EnvironmentSatisfaction, JobSatisfaction, WorkLifeBalance
+    FROM employee_survey_data
+    WHERE DateSurvey IN ('2015-12-31', '2016-12-31')
+),
+general_filtered AS (
+    SELECT EmployeeID, InfoDate, Age, BusinessTravel, Department
+    FROM general_data
+    WHERE InfoDate IN ('2015-12-31', '2016-12-31')
+),
+manager_filtered AS (
+    SELECT EmployeeID, SurveyDate, JobInvolvement, PerformanceRating
+    FROM manager_survey_data
+    WHERE SurveyDate IN ('2015-12-31', '2016-12-31')
+),
+retirement_filtered AS (
+    SELECT EmployeeID, retirementDate, retirementType
+    FROM retirement_info
+    WHERE strftime('%Y', retirementDate) IN ('2015', '2016')
+)
 
-CREATE TABLE employee_2016 AS
-SELECT * 
-FROM employee
-WHERE DateSurvey = '2016-12-31 00:00:00';
+-- Unimos los datos de 2015 en una tabla
+CREATE TABLE tabla_2015 AS
+SELECT g.EmployeeID, g.Age, g.BusinessTravel, g.Department, e.EnvironmentSatisfaction, e.JobSatisfaction, 
+       e.WorkLifeBalance, m.JobInvolvement, m.PerformanceRating, r.retirementType AS retiro_2015
+FROM general_filtered g
+JOIN employee_filtered e ON g.EmployeeID = e.EmployeeID AND e.DateSurvey = '2015-12-31'
+JOIN manager_filtered m ON g.EmployeeID = m.EmployeeID AND m.SurveyDate = '2015-12-31'
+LEFT JOIN retirement_filtered r ON g.EmployeeID = r.EmployeeID AND strftime('%Y', r.retirementDate) = '2015';
 
-CREATE TABLE general_2015 AS 
-SELECT * 
-FROM general
-WHERE InfoDate = '2015-12-31 00:00:00';
+-- Unimos los datos de 2016 en una tabla
+CREATE TABLE tabla_2016 AS
+SELECT g.EmployeeID, g.Age, g.BusinessTravel, g.Department, e.EnvironmentSatisfaction, e.JobSatisfaction, 
+       e.WorkLifeBalance, m.JobInvolvement, m.PerformanceRating, r.retirementType AS retiro_2016
+FROM general_filtered g
+JOIN employee_filtered e ON g.EmployeeID = e.EmployeeID AND e.DateSurvey = '2016-12-31'
+JOIN manager_filtered m ON g.EmployeeID = m.EmployeeID AND m.SurveyDate = '2016-12-31'
+LEFT JOIN retirement_filtered r ON g.EmployeeID = r.EmployeeID AND strftime('%Y', r.retirementDate) = '2016';
 
-CREATE TABLE general_2016 AS 
-SELECT * 
-FROM general
-WHERE InfoDate = '2016-12-31 00:00:00';
+-- Crear la variable objetivo para 2015
+CREATE TABLE retiros_2016 AS
+SELECT EmployeeID, retiro_2016
+FROM tabla_2016;
 
-CREATE TABLE manager_2015 AS
-SELECT * 
-FROM manager
-WHERE SurveyDate = '2015-12-31 00:00:00';
+-- Crear tabla para unir datos de 2015 con la variable objetivo
+CREATE TABLE tabla_20150 AS
+SELECT t.*, r.retiro_2016
+FROM tabla_2015 t
+LEFT JOIN retiros_2016 r ON t.EmployeeID = r.EmployeeID;
 
-CREATE TABLE manager_2016 AS
-SELECT * 
-FROM manager
-WHERE SurveyDate = '2016-12-31 00:00:00';
+-- Crear variable binaria en la tabla de 2015 para indicar renuncias en 2016
+CREATE TABLE tabla_final_2015 AS
+SELECT *,
+    CASE WHEN retiro_2016 = 'Resignation' THEN 1 ELSE 0 END AS renuncia2016
+FROM tabla_20150;
 
-CREATE TABLE retirement_2015 AS
-SELECT *
-FROM retirement
-WHERE strftime('%Y', retirementDate) = '2015';
+-- Limpiar columnas innecesarias en la tabla 2015
+CREATE TABLE tabla_limpia_2015 AS
+SELECT EmployeeID, Age, BusinessTravel, Department, EnvironmentSatisfaction, JobSatisfaction, 
+       WorkLifeBalance, JobInvolvement, PerformanceRating, renuncia2016
+FROM tabla_final_2015;
 
-CREATE TABLE retirement_2016 AS
-SELECT *
-FROM retirement
-WHERE strftime('%Y', retirementDate) = '2016';
+-- Eliminar empleados que renunciaron en 2015 de los datos de 2016
+DELETE FROM tabla_2016
+WHERE EmployeeID IN (SELECT EmployeeID FROM tabla_2015 WHERE retiro_2015 = 'Resignation');
 
--- Unir tablas de 2015 y 2016
-CREATE TABLE data_2015 AS
-SELECT 
-    g1.EmployeeID,
-    g1.*, 
-    e1.*, 
-    m1.*, 
-    CASE
-        WHEN r2.retirementType = 'Resignation' THEN 1
-        ELSE 0
-    END AS renuncia2016
-FROM 
-    general_2015 g1
-JOIN 
-    employee_2015 e1 ON g1.EmployeeID = e1.EmployeeID
-JOIN 
-    manager_2015 m1 ON g1.EmployeeID = m1.EmployeeID
-LEFT JOIN 
-    retirement_2016 r2 ON g1.EmployeeID = r2.EmployeeID;
+-- Limpiar columnas innecesarias en la tabla 2016
+CREATE TABLE tabla_limpia_2016 AS
+SELECT EmployeeID, Age, BusinessTravel, Department, EnvironmentSatisfaction, JobSatisfaction, 
+       WorkLifeBalance, JobInvolvement, PerformanceRating
+FROM tabla_2016;
 
-CREATE TABLE data_2016 AS
-SELECT 
-    g2.EmployeeID,
-    g2.*, 
-    e2.*, 
-    m2.*
-FROM 
-    general_2016 g2
-JOIN 
-    employee_2016 e2 ON g2.EmployeeID = e2.EmployeeID
-JOIN 
-    manager_2016 m2 ON g2.EmployeeID = m2.EmployeeID
-LEFT JOIN 
-    retirement_2016 r2 ON g2.EmployeeID = r2.EmployeeID;
-
--- Eliminar registros de empleados que renunciaron en 2015
-DELETE FROM data_2016
-WHERE EXISTS (
-    SELECT 1
-    FROM retirement_2015 r1
-    WHERE r1.EmployeeID = data_2016.EmployeeID
-);
-
-
--- Renombrar la tabla data_2016 para predecir datos de 2017
-ALTER TABLE data_2016 RENAME TO data_for_2017_prediction;
-
--- Crear tabla final consolidada para análisis
-CREATE TABLE final_dataset AS
-SELECT *
-FROM data_2015
-UNION ALL
-SELECT *
-FROM data_for_2017_prediction;
+-- Renombrar tabla final 2016 para predecir
+ALTER TABLE tabla_limpia_2016 RENAME TO tabla_prediccion_2016;
