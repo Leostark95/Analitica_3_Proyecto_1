@@ -73,3 +73,4 @@ FROM tabla_2016;
 
 -- Renombrar tabla final 2016 para predecir
 ALTER TABLE tabla_limpia_2016 RENAME TO tabla_prediccion_2016;
+
