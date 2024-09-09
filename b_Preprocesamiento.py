@@ -31,7 +31,9 @@ FROM employee_survey_data
 WHERE DateSurvey IN ('2015-12-31', '2016-12-31');
 
 CREATE TABLE IF NOT EXISTS general_filtered AS
-SELECT EmployeeID, InfoDate, Age, BusinessTravel, Department
+SELECT EmployeeID, InfoDate, Age, BusinessTravel, Department, DistanceFromHome, Education, 
+        JobRole, MonthlyIncome, NumCompaniesWorked, PercentSalaryHike, 
+        TrainingTimesLastYear, YearsAtCompany, YearsSinceLastPromotion
 FROM general_data
 WHERE InfoDate IN ('2015-12-31', '2016-12-31');
 
