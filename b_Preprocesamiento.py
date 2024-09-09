@@ -1,5 +1,12 @@
 import sqlite3
 import pandas as pd
+import os
+
+# Eliminar el archivo de la base de datos
+if os.path.exists('my_database.db'):
+    os.remove('my_database.db')
+else:
+    print("El archivo no existe")
 
 # Conectarse o crear la base de datos SQLite
 conn = sqlite3.connect('my_database.db')
