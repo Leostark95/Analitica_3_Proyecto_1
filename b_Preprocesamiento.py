@@ -32,8 +32,8 @@ WHERE DateSurvey IN ('2015-12-31', '2016-12-31');
 
 CREATE TABLE IF NOT EXISTS general_filtered AS
 SELECT EmployeeID, InfoDate, Age, BusinessTravel, Department, DistanceFromHome, Education, 
-        JobRole, MonthlyIncome, NumCompaniesWorked, PercentSalaryHike, 
-        TrainingTimesLastYear, YearsAtCompany, YearsSinceLastPromotion
+    JobRole, MonthlyIncome, NumCompaniesWorked, PercentSalaryHike, TrainingTimesLastYear, 
+    YearsAtCompany, YearsSinceLastPromotion
 FROM general_data
 WHERE InfoDate IN ('2015-12-31', '2016-12-31');
 
@@ -54,7 +54,9 @@ conn.executescript(create_filtered_tables_sql)
 # Crear y unir datos de 2015
 create_2015_sql = '''
 CREATE TABLE IF NOT EXISTS tabla_2015 AS
-SELECT g.EmployeeID, g.Age, g.BusinessTravel, g.Department, e.EnvironmentSatisfaction, e.JobSatisfaction, 
+SELECT g.EmployeeID, g.Age, g.BusinessTravel, g.Department, g.DistanceFromHome, g.Education, 
+       g.JobRole, g.MonthlyIncome, g.NumCompaniesWorked, g.PercentSalaryHike, g.TrainingTimesLastYear, 
+       g.YearsAtCompany, g.YearsSinceLastPromotion, e.EnvironmentSatisfaction, e.JobSatisfaction, 
        e.WorkLifeBalance, m.JobInvolvement, m.PerformanceRating, r.retirementType AS retiro_2015
 FROM general_filtered g
 JOIN employee_filtered e ON g.EmployeeID = e.EmployeeID AND e.DateSurvey = '2015-12-31'
@@ -65,7 +67,9 @@ LEFT JOIN retirement_filtered r ON g.EmployeeID = r.EmployeeID AND strftime('%Y'
 # Crear y unir datos de 2016
 create_2016_sql = '''
 CREATE TABLE IF NOT EXISTS tabla_2016 AS
-SELECT g.EmployeeID, g.Age, g.BusinessTravel, g.Department, e.EnvironmentSatisfaction, e.JobSatisfaction, 
+SELECT g.EmployeeID, g.Age, g.BusinessTravel, g.Department, g.DistanceFromHome, g.Education, 
+       g.JobRole, g.MonthlyIncome, g.NumCompaniesWorked, g.PercentSalaryHike, g.TrainingTimesLastYear, 
+       g.YearsAtCompany, g.YearsSinceLastPromotion, e.EnvironmentSatisfaction, e.JobSatisfaction, 
        e.WorkLifeBalance, m.JobInvolvement, m.PerformanceRating, r.retirementType AS retiro_2016
 FROM general_filtered g
 JOIN employee_filtered e ON g.EmployeeID = e.EmployeeID AND e.DateSurvey = '2016-12-31'
@@ -99,8 +103,10 @@ FROM tabla_20150;
 # Limpiar columnas innecesarias en la tabla 2015
 create_limpia_2015_sql = '''
 CREATE TABLE IF NOT EXISTS tabla_limpia_2015 AS
-SELECT EmployeeID, Age, BusinessTravel, Department, EnvironmentSatisfaction, JobSatisfaction, 
-       WorkLifeBalance, JobInvolvement, PerformanceRating, renuncia2016
+SELECT EmployeeID, Age, BusinessTravel, Department, DistanceFromHome, Education, 
+    JobRole, MonthlyIncome, NumCompaniesWorked, PercentSalaryHike, TrainingTimesLastYear, 
+    YearsAtCompany, YearsSinceLastPromotion, EnvironmentSatisfaction, JobSatisfaction, 
+    WorkLifeBalance, JobInvolvement, PerformanceRating, renuncia2016
 FROM tabla_final_2015;
 '''
 
@@ -113,8 +119,10 @@ WHERE EmployeeID IN (SELECT EmployeeID FROM tabla_2015 WHERE retiro_2015 = 'Resi
 # Limpiar columnas innecesarias en la tabla 2016
 create_limpia_2016_sql = '''
 CREATE TABLE IF NOT EXISTS tabla_limpia_2016 AS
-SELECT EmployeeID, Age, BusinessTravel, Department, EnvironmentSatisfaction, JobSatisfaction, 
-       WorkLifeBalance, JobInvolvement, PerformanceRating
+SELECT EmployeeID, Age, BusinessTravel, Department, DistanceFromHome, Education, 
+    JobRole, MonthlyIncome, NumCompaniesWorked, PercentSalaryHike, TrainingTimesLastYear, 
+    YearsAtCompany, YearsSinceLastPromotion, EnvironmentSatisfaction, JobSatisfaction, 
+    WorkLifeBalance, JobInvolvement, PerformanceRating
 FROM tabla_2016;
 '''
 
