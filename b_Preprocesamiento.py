@@ -1,9 +1,7 @@
 import sqlite3
 import pandas as pd
 import os
-import importlib 
 import a_funciones as funciones # Este archivo contiene las funciones a utilizar
-importlib.reload(funciones) # Actualiza los cambios en el archivo de las funciones
 
 
 # --------------------------- Carga de datos --------------------------------------------------------
@@ -42,7 +40,6 @@ else:
 
 # Conectarse o crear la base de datos SQLite
 conn = sqlite3.connect('my_database.db')
-
 
 # Insertar los datos en tablas de SQLite
 general_data.to_sql('general_data', conn, if_exists='replace', index=False)
