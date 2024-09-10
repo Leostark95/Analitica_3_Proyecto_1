@@ -3,11 +3,12 @@ import pandas as pd
 import os
 
 # Eliminar el archivo de la base de datos
-if os.path.exists('my_database.db'):
+
+'''if os.path.exists('my_database.db'):
     os.remove('my_database.db')
 else:
     print("El archivo no existe")
-
+'''
 # Conectarse o crear la base de datos SQLite
 conn = sqlite3.connect('my_database.db')
 
@@ -57,11 +58,12 @@ CREATE TABLE IF NOT EXISTS tabla_2015 AS
 SELECT g.EmployeeID, g.Age, g.BusinessTravel, g.Department, g.DistanceFromHome, g.Education, 
        g.JobRole, g.MonthlyIncome, g.NumCompaniesWorked, g.PercentSalaryHike, g.TrainingTimesLastYear, 
        g.YearsAtCompany, g.YearsSinceLastPromotion, e.EnvironmentSatisfaction, e.JobSatisfaction, 
-       e.WorkLifeBalance, m.JobInvolvement, m.PerformanceRating, r.retirementType AS retiro_2015
+       e.WorkLifeBalance, m.JobInvolvement, m.PerformanceRating, r.retirementType AS retiro_2016
 FROM general_filtered g
 JOIN employee_filtered e ON g.EmployeeID = e.EmployeeID AND e.DateSurvey = '2015-12-31'
 JOIN manager_filtered m ON g.EmployeeID = m.EmployeeID AND m.SurveyDate = '2015-12-31'
-LEFT JOIN retirement_filtered r ON g.EmployeeID = r.EmployeeID AND strftime('%Y', r.retirementDate) = '2015';
+LEFT JOIN retirement_filtered r ON g.EmployeeID = r.EmployeeID AND strftime('%Y', r.retirementDate) = '2016'
+GROUP BY g.EmployeeID;
 '''
 
 # Crear y unir datos de 2016
@@ -70,26 +72,11 @@ CREATE TABLE IF NOT EXISTS tabla_2016 AS
 SELECT g.EmployeeID, g.Age, g.BusinessTravel, g.Department, g.DistanceFromHome, g.Education, 
        g.JobRole, g.MonthlyIncome, g.NumCompaniesWorked, g.PercentSalaryHike, g.TrainingTimesLastYear, 
        g.YearsAtCompany, g.YearsSinceLastPromotion, e.EnvironmentSatisfaction, e.JobSatisfaction, 
-       e.WorkLifeBalance, m.JobInvolvement, m.PerformanceRating, r.retirementType AS retiro_2016
+       e.WorkLifeBalance, m.JobInvolvement, m.PerformanceRating
 FROM general_filtered g
 JOIN employee_filtered e ON g.EmployeeID = e.EmployeeID AND e.DateSurvey = '2016-12-31'
 JOIN manager_filtered m ON g.EmployeeID = m.EmployeeID AND m.SurveyDate = '2016-12-31'
-LEFT JOIN retirement_filtered r ON g.EmployeeID = r.EmployeeID AND strftime('%Y', r.retirementDate) = '2016';
-'''
-
-# Crear la variable objetivo para 2015
-create_retiros_sql = '''
-CREATE TABLE IF NOT EXISTS retiros_2016 AS
-SELECT EmployeeID, retiro_2016
-FROM tabla_2016;
-'''
-
-# Unir datos de 2015 con la variable objetivo
-create_20150_sql = '''
-CREATE TABLE IF NOT EXISTS tabla_20150 AS
-SELECT t.*, r.retiro_2016
-FROM tabla_2015 t
-LEFT JOIN retiros_2016 r ON t.EmployeeID = r.EmployeeID;
+GROUP BY g.EmployeeID;
 '''
 
 # Crear variable binaria para indicar renuncias en 2016
@@ -97,47 +84,13 @@ create_final_2015_sql = '''
 CREATE TABLE IF NOT EXISTS tabla_final_2015 AS
 SELECT *,
     CASE WHEN retiro_2016 = 'Resignation' THEN 1 ELSE 0 END AS renuncia2016
-FROM tabla_20150;
+FROM tabla_2015;
 '''
 
-# Limpiar columnas innecesarias en la tabla 2015
-create_limpia_2015_sql = '''
-CREATE TABLE IF NOT EXISTS tabla_limpia_2015 AS
-SELECT EmployeeID, Age, BusinessTravel, Department, DistanceFromHome, Education, 
-    JobRole, MonthlyIncome, NumCompaniesWorked, PercentSalaryHike, TrainingTimesLastYear, 
-    YearsAtCompany, YearsSinceLastPromotion, EnvironmentSatisfaction, JobSatisfaction, 
-    WorkLifeBalance, JobInvolvement, PerformanceRating, renuncia2016
-FROM tabla_final_2015;
-'''
-
-# Eliminar empleados que renunciaron en 2015 de los datos de 2016
-delete_from_2016_sql = '''
-DELETE FROM tabla_2016
-WHERE EmployeeID IN (SELECT EmployeeID FROM tabla_2015 WHERE retiro_2015 = 'Resignation');
-'''
-
-# Limpiar columnas innecesarias en la tabla 2016
-create_limpia_2016_sql = '''
-CREATE TABLE IF NOT EXISTS tabla_limpia_2016 AS
-SELECT EmployeeID, Age, BusinessTravel, Department, DistanceFromHome, Education, 
-    JobRole, MonthlyIncome, NumCompaniesWorked, PercentSalaryHike, TrainingTimesLastYear, 
-    YearsAtCompany, YearsSinceLastPromotion, EnvironmentSatisfaction, JobSatisfaction, 
-    WorkLifeBalance, JobInvolvement, PerformanceRating
-FROM tabla_2016;
-'''
-
-# Renombrar tabla final 2016 para predecir
-rename_final_2016_sql = '''
-DROP TABLE IF EXISTS tabla_prediccion_2016;
-
-ALTER TABLE tabla_limpia_2016 RENAME TO tabla_prediccion_2016;
-'''
 
 # Ejecutar el código SQL en partes
 for sql_script in [
-    create_2015_sql, create_2016_sql, create_retiros_sql,
-    create_20150_sql, create_final_2015_sql, create_limpia_2015_sql,
-    delete_from_2016_sql, create_limpia_2016_sql, rename_final_2016_sql
+    create_2015_sql, create_2016_sql, create_final_2015_sql
 ]:
     try:
         conn.executescript(sql_script)
@@ -145,8 +98,8 @@ for sql_script in [
         print(f"Error al ejecutar el script SQL: {e}")
 
 # Consultar las tablas procesadas
-result_2015 = pd.read_sql_query("SELECT * FROM tabla_limpia_2015;", conn)
-result_2016 = pd.read_sql_query("SELECT * FROM tabla_prediccion_2016;", conn)
+result_2015 = pd.read_sql_query("SELECT * FROM tabla_final_2015;", conn)
+result_2016 = pd.read_sql_query("SELECT * FROM tabla_2016;", conn)
 
 # Guardar los resultados en archivos CSV
 result_2015.to_csv('processed_data_2015.csv', index=False)
