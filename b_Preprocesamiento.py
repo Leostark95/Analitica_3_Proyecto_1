@@ -1,22 +1,48 @@
 import sqlite3
 import pandas as pd
 import os
+import importlib 
+import a_funciones as funciones # Este archivo contiene las funciones a utilizar
+importlib.reload(funciones) # Actualiza los cambios en el archivo de las funciones
 
-# Eliminar el archivo de la base de datos
 
-'''if os.path.exists('my_database.db'):
-    os.remove('my_database.db')
-else:
-    print("El archivo no existe")
-'''
-# Conectarse o crear la base de datos SQLite
-conn = sqlite3.connect('my_database.db')
+# --------------------------- Carga de datos --------------------------------------------------------
+# Agregar la ruta que contiene el archivo de funciones
+sys.path
+#sys.path.append('C:/Users/delva/OneDrive - Universidad de Antioquia/SEMESTRE 2024-2/ANALITICA 3/Proyecto_Recursos_humanos/Analitica_3_Proyecto_RH')
+#sys.path.append('') # Ruta Leo
+sys.path.append('c:\Users\Manuela\Documents\Analitica 3\Analitica_3_Proyecto_1') # Ruta Manuela
+#sys.path.append('') # Ruta Karen
+
+#Agregar datos desde GitHub
+
+# Clonar el repositorio
+#subprocess.run(["git", "clone", "https://github.com/Leostark95/Analitica_3_Proyecto_1.git"])
 
 # Leer los archivos CSV con pandas
 general_data = pd.read_csv('data/general_data.csv')
 employee_survey_data = pd.read_csv('data/employee_survey_data.csv')
 manager_survey_data = pd.read_csv('data/manager_survey.csv')
 retirement_info = pd.read_csv('data/retirement_info.csv')
+
+# Mostrar primeras 10 filas
+print(general_data.head(10))
+print(employee_survey_data.head(10))
+print(manager_survey_data.head(10))
+print(retirement_info.head(10))
+
+# Eliminar el archivo de la base de datos
+
+if os.path.exists('my_database.db'):
+    os.remove('my_database.db')
+    os.remove('processed_data_2015.csv')
+    os.remove('processed_data_2016.csv')
+else:
+    print("El archivo no existe")
+
+# Conectarse o crear la base de datos SQLite
+conn = sqlite3.connect('my_database.db')
+
 
 # Insertar los datos en tablas de SQLite
 general_data.to_sql('general_data', conn, if_exists='replace', index=False)
