@@ -2,20 +2,16 @@ import sqlite3
 import pandas as pd
 import os
 import a_funciones as funciones # Este archivo contiene las funciones a utilizar
-
+import sys
 
 # --------------------------- Carga de datos --------------------------------------------------------
 # Agregar la ruta que contiene el archivo de funciones
-sys.path
+#sys.path
 #sys.path.append('C:/Users/delva/OneDrive - Universidad de Antioquia/SEMESTRE 2024-2/ANALITICA 3/Proyecto_Recursos_humanos/Analitica_3_Proyecto_RH')
 #sys.path.append('') # Ruta Leo
-sys.path.append('c:\Users\Manuela\Documents\Analitica 3\Analitica_3_Proyecto_1') # Ruta Manuela
+sys.path.append('c:\\Users\\Manuela\\Documents\\Analitica 3\\Analitica_3_Proyecto_1') # Ruta Manuela
 #sys.path.append('') # Ruta Karen
 
-#Agregar datos desde GitHub
-
-# Clonar el repositorio
-#subprocess.run(["git", "clone", "https://github.com/Leostark95/Analitica_3_Proyecto_1.git"])
 
 # Leer los archivos CSV con pandas
 general_data = pd.read_csv('data/general_data.csv')
@@ -29,8 +25,31 @@ print(employee_survey_data.head(10))
 print(manager_survey_data.head(10))
 print(retirement_info.head(10))
 
-# Eliminar el archivo de la base de datos
+#------------------ Vista previa de las bases de datos ------------------
+columns = general_data.columns
+columns
+for i in columns:
+    print('-'*10, i, '-'*10)
+    print(general_data[i].value_counts())
+'''
+EmployeeCount y Over18 tienen el mismo dato en todos los registos,
+ no aportan información útil para entrenar en el modelo predictivo
+'''
+#----------------- Eliminar variables que no son relevantes ---------------------
+# Eliminar columnas sin información relevante
+general_data = general_data.drop(
+    [
+        'EducationField', 'EmployeeCount', 'MaritalStatus', 'Over18', 
+        'StandardHours', 'StockOptionLevel', 'YearsWithCurrManager', 
+        'TotalWorkingYears'
+    ], 
+    axis=1
+)
 
+# Attrition tiene el mismo dato en todos los registros
+retirement_info = retirement_info.drop(['Attrition', 'resignationReason'], axis = 1) 
+retirement_info
+# Eliminar el archivo de la base de datos
 if os.path.exists('my_database.db'):
     os.remove('my_database.db')
     os.remove('processed_data_2015.csv')
@@ -50,24 +69,22 @@ retirement_info.to_sql('retirement_info', conn, if_exists='replace', index=False
 # Crear tablas filtradas
 create_filtered_tables_sql = '''
 CREATE TABLE IF NOT EXISTS employee_filtered AS
-SELECT EmployeeID, DateSurvey, EnvironmentSatisfaction, JobSatisfaction, WorkLifeBalance
+SELECT *
 FROM employee_survey_data
 WHERE DateSurvey IN ('2015-12-31', '2016-12-31');
 
 CREATE TABLE IF NOT EXISTS general_filtered AS
-SELECT EmployeeID, InfoDate, Age, BusinessTravel, Department, DistanceFromHome, Education, 
-    JobRole, MonthlyIncome, NumCompaniesWorked, PercentSalaryHike, TrainingTimesLastYear, 
-    YearsAtCompany, YearsSinceLastPromotion
+SELECT *
 FROM general_data
 WHERE InfoDate IN ('2015-12-31', '2016-12-31');
 
 CREATE TABLE IF NOT EXISTS manager_filtered AS
-SELECT EmployeeID, SurveyDate, JobInvolvement, PerformanceRating
+SELECT *
 FROM manager_survey_data
 WHERE SurveyDate IN ('2015-12-31', '2016-12-31');
 
 CREATE TABLE IF NOT EXISTS retirement_filtered AS
-SELECT EmployeeID, retirementDate, retirementType
+SELECT *
 FROM retirement_info
 WHERE strftime('%Y', retirementDate) IN ('2015', '2016');
 '''
