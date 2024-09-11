@@ -255,3 +255,24 @@ def table(df1, df2):
     abstract = pd.DataFrame(resumen, index = ['Renuncian', 'No renuncian'])
 
     return abstract
+
+#--------- Función para análisis descriptivo -------------
+
+def check_df(dataframe, head=5):
+    display(Markdown('**Shape**'))
+    display(dataframe.shape)
+
+    display(Markdown('**Types**'))
+    display(dataframe.dtypes)
+
+    display(Markdown('**Head**'))
+    display(dataframe.head(head))
+
+    display(Markdown('**NA**'))
+    display(dataframe.isnull().sum())
+
+    display(Markdown("**Duplicated**"))
+    display(dataframe.duplicated().sum())
+
+    display(Markdown('**Quantiles**'))
+    display(dataframe.describe([0, 0.05, 0.50, 0.95, 0.99, 1]).T)
