@@ -276,3 +276,27 @@ def check_df(dataframe, head=5):
 
     display(Markdown('**Quantiles**'))
     display(dataframe.describe([0, 0.05, 0.50, 0.95, 0.99, 1]).T)
+
+
+#-------- Histograma o boxplot ------------
+def plot_histogram_and_boxplot(df, column_name):
+    fig = make_subplots(rows=1, cols=2)
+
+    fig.update_layout(
+        autosize=False,
+        width=650,
+        height=480,
+        title_text=f"Histograma y Boxplot de {column_name}"
+    )
+
+    fig.add_trace(
+        go.Histogram(x=df[column_name], name=column_name, marker_color='coral'),
+        row=1, col=1
+    )
+
+    fig.add_trace(
+        go.Box(y=df[column_name], name=column_name, marker_color='coral'),
+        row=1, col=2
+    )
+
+    fig.show()
