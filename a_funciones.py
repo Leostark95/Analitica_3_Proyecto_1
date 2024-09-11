@@ -11,7 +11,7 @@ from sklearn.preprocessing import StandardScaler # Para escalar variables
 from plotly.subplots import make_subplots
 import plotly.graph_objects as go
 import plotly.express as px
-
+from IPython.display import display, Markdown
 
 # Las fucniones más útiles para el desarrollo del proyecto están en este script
 
