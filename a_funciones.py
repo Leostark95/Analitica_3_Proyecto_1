@@ -8,10 +8,11 @@ from sklearn.feature_selection import RFE
 from sklearn.model_selection import cross_val_predict, cross_val_score, cross_validate
 import joblib
 from sklearn.preprocessing import StandardScaler # Para escalar variables
-from plotly.subplots import make_subplots
-import plotly.graph_objects as go
-import plotly.express as px
+
+import seaborn as sns
+import matplotlib.pyplot as plt
 from IPython.display import display, Markdown
+
 
 # Las fucniones más útiles para el desarrollo del proyecto están en este script
 
@@ -274,29 +275,28 @@ def check_df(dataframe, head=5):
     display(Markdown("**Duplicated**"))
     display(dataframe.duplicated().sum())
 
-    display(Markdown('**Quantiles**'))
-    display(dataframe.describe([0, 0.05, 0.50, 0.95, 0.99, 1]).T)
-
 
 #-------- Histograma o boxplot ------------
 def plot_histogram_and_boxplot(df, column_name):
-    fig = make_subplots(rows=1, cols=2)
-
-    fig.update_layout(
-        autosize=False,
-        width=650,
-        height=480,
-        title_text=f"Histograma y Boxplot de {column_name}"
-    )
-
-    fig.add_trace(
-        go.Histogram(x=df[column_name], name=column_name, marker_color='coral'),
-        row=1, col=1
-    )
-
-    fig.add_trace(
-        go.Box(y=df[column_name], name=column_name, marker_color='coral'),
-        row=1, col=2
-    )
-
-    fig.show()
+    # Crear una figura y ejes para los subplots
+    fig, axs = plt.subplots(1, 2, figsize=(12, 6))
+    
+    # Establecer el color
+    color = 'lightblue'
+    
+    # Histograma
+    sns.histplot(df[column_name], kde=False, color=color, ax=axs[0])
+    axs[0].set_title(f'Histograma de {column_name}')
+    axs[0].set_xlabel(column_name)
+    axs[0].set_ylabel('Frecuencia')
+    
+    # Boxplot
+    sns.boxplot(x=df[column_name], color=color, ax=axs[1])
+    axs[1].set_title(f'Boxplot de {column_name}')
+    axs[1].set_xlabel(column_name)
+    
+    # Ajustar el layout
+    plt.tight_layout()
+    
+    # Mostrar la figura
+    plt.show()
