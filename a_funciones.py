@@ -299,4 +299,4 @@ def plot_histogram_and_boxplot(df, column_name):
     plt.tight_layout()
     
     # Mostrar la figura
-    plt.show()
+    return(plt.show())
