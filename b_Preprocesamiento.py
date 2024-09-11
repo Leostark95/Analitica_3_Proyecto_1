@@ -7,9 +7,9 @@ import sys
 # --------------------------- Carga de datos --------------------------------------------------------
 # Agregar la ruta que contiene el archivo de funciones
 #sys.path
-#sys.path.append('C:/Users/delva/OneDrive - Universidad de Antioquia/SEMESTRE 2024-2/ANALITICA 3/Proyecto_Recursos_humanos/Analitica_3_Proyecto_RH')
+sys.path.append('C:/Users/delva/OneDrive - Universidad de Antioquia/SEMESTRE 2024-2/ANALITICA 3/Proyecto_Recursos_humanos/Analitica_3_Proyecto_RH')
 #sys.path.append('') # Ruta Leo
-sys.path.append('c:\\Users\\Manuela\\Documents\\Analitica 3\\Analitica_3_Proyecto_1') # Ruta Manuela
+#sys.path.append('c:\\Users\\Manuela\\Documents\\Analitica 3\\Analitica_3_Proyecto_1') # Ruta Manuela
 #sys.path.append('') # Ruta Karen
 
 
@@ -49,13 +49,28 @@ general_data = general_data.drop(
 # Attrition tiene el mismo dato en todos los registros
 retirement_info = retirement_info.drop(['Attrition', 'resignationReason'], axis = 1) 
 retirement_info
+
+#----------------- Verificar y eliminar nulos ---------------------
+
+general_data.isnull().sum()
+employee_survey_data.isnull().sum()
+manager_survey_data.isnull().sum()
+retirement_info.isnull().sum()
+
+general_data = general_data.dropna()
+employee_survey_data = employee_survey_data.dropna()
+
+general_data.isnull().sum()
+employee_survey_data.isnull().sum()
+
+
 # Eliminar el archivo de la base de datos
 if os.path.exists('my_database.db'):
     os.remove('my_database.db')
     os.remove('processed_data_2015.csv')
     os.remove('processed_data_2016.csv')
 else:
-    print("El archivo no existe")
+    print("El archivo no existe")    
 
 # Conectarse o crear la base de datos SQLite
 conn = sqlite3.connect('my_database.db')
