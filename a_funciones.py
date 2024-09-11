@@ -20,7 +20,7 @@ from sklearn.feature_selection import RFE
 from sklearn.linear_model import LogisticRegression
 from sklearn.feature_selection import VarianceThreshold
 from sklearn.feature_selection import SelectKBest, f_regression, mutual_info_regression,  f_classif, mutual_info_classif, chi2
-
+from sklearn.preprocessing import MinMaxScaler
 
 
 # Las fucniones más útiles para el desarrollo del proyecto están en este script
@@ -346,3 +346,28 @@ def variance_threshold(X,th): # recibe el dataframe y el umbral
     var_thres.fit(X) # alimenta los datos con la función creada
     new_cols = var_thres.get_support() # devuelve las columnas
     return new_cols
+
+def normalize_dataframe(df):
+    # Crear una copia del DataFrame original
+    df1 = df.copy(deep=True)
+    
+    # Asignar el tipo de normalización
+    scaler = MinMaxScaler()
+    
+    # Normalizar los datos
+    sv = scaler.fit_transform(df1.iloc[:, :])
+    
+    # Asignar los nuevos datos al DataFrame
+    df1.iloc[:, :] = sv
+    
+    # Retornar el DataFrame normalizado
+    return df1
+
+# Función de filtro de caracteristicas - stadis. scores
+def select_kbest(X,y,score_f,k): #se establece una funcion que permite sacar varias funciones de evaluacion
+    sel_kb = SelectKBest(score_func=score_f, k=k)
+    sel_kb.fit(X,y)
+    scores = sel_kb.scores_
+    pvalues = sel_kb.pvalues_
+    new_cols = sel_kb.get_support()
+    print("Scores:\n", scores, "\nP-values:\n", pvalues)
