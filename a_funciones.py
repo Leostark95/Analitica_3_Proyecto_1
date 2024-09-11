@@ -11,6 +11,7 @@ from sklearn.preprocessing import StandardScaler # Para escalar variables
 
 import seaborn as sns
 import matplotlib.pyplot as plt
+import plotly.express as px
 from IPython.display import display, Markdown
 
 
@@ -294,4 +295,37 @@ def plot_histogram_and_boxplot(df, column_name):
     axs[1].set_xlabel(column_name)
 
     plt.tight_layout()
+    plt.show()
+
+#----------------- Gráfico histograma -----------------
+def plot_categorical_distribution(df, column_name):
+
+    # Calcular la frecuencia de cada categoría
+    data = df[column_name].value_counts().reset_index()
+    data.columns = [column_name, 'Frecuencia']
+
+    # Crear el gráfico de barras
+    fig = px.bar(data, x=column_name, y='Frecuencia',
+                 title=f'Distribución de la Variable Categórica: {column_name}',
+                 labels={column_name: column_name, 'Frecuencia': 'Frecuencia'},
+                 color='Frecuencia',  # Opcional: para dar color a las barras según la frecuencia
+                 color_continuous_scale='Viridis')  # Opcional: escala de colores
+
+    # Ajustar la apariencia del gráfico
+    fig.update_layout(template='simple_white', title_x=0.5, showlegend=False)
+    fig.update_layout(width=650, height=480)
+
+    # Mostrar el gráfico
+    fig.show()
+
+#----------------- Matriz de correlación v numéricas -----------------
+
+def plot_correlation_matrix(df, columns_num):
+    # Calcula la matriz de correlación
+    matriz_correlacion = df[columns_num].corr()
+
+    # Visualizar la matriz de correlación
+    plt.figure(figsize=(15, 12), dpi=80)
+    sns.heatmap(matriz_correlacion, annot=True, fmt=".2f", linewidths=0.5, linecolor='white', cmap='coolwarm')
+    plt.title("Mapa de calor de la matriz de correlación")
     plt.show()
