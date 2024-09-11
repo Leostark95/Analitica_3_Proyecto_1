@@ -15,6 +15,14 @@ import plotly.express as px
 from IPython.display import display, Markdown
 
 
+#Librerías para métodos de filtrado
+from sklearn.feature_selection import RFE
+from sklearn.linear_model import LogisticRegression
+from sklearn.feature_selection import VarianceThreshold
+from sklearn.feature_selection import SelectKBest, f_regression, mutual_info_regression,  f_classif, mutual_info_classif, chi2
+
+
+
 # Las fucniones más útiles para el desarrollo del proyecto están en este script
 
 # Función que permite ejecutar un archivo  con extensión .sql que contenga varias consultas
@@ -329,3 +337,12 @@ def plot_correlation_matrix(df, columns_num):
     sns.heatmap(matriz_correlacion, annot=True, fmt=".2f", linewidths=0.5, linecolor='white', cmap='coolwarm')
     plt.title("Mapa de calor de la matriz de correlación")
     plt.show()
+
+#----------------- Métodos de filtrado --------------------------
+# Función de filtro de caracteristicas
+
+def variance_threshold(X,th): # recibe el dataframe y el umbral
+    var_thres = VarianceThreshold(threshold=th) # crea la función con base en el umbral
+    var_thres.fit(X) # alimenta los datos con la función creada
+    new_cols = var_thres.get_support() # devuelve las columnas
+    return new_cols
