@@ -278,10 +278,8 @@ def check_df(dataframe, head=5):
 
 #-------- Histograma o boxplot ------------
 def plot_histogram_and_boxplot(df, column_name):
-    # Crear una figura y ejes para los subplots
     fig, axs = plt.subplots(1, 2, figsize=(12, 6))
-    
-    # Establecer el color
+
     color = 'lightblue'
     
     # Histograma
@@ -294,9 +292,6 @@ def plot_histogram_and_boxplot(df, column_name):
     sns.boxplot(x=df[column_name], color=color, ax=axs[1])
     axs[1].set_title(f'Boxplot de {column_name}')
     axs[1].set_xlabel(column_name)
-    
-    # Ajustar el layout
+
     plt.tight_layout()
-    
-    # Mostrar la figura
-    return(plt.show())
+    plt.show()
