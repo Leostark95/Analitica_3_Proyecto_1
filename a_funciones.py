@@ -339,13 +339,6 @@ def plot_correlation_matrix(df, columns_num):
     plt.show()
 
 #----------------- Métodos de filtrado --------------------------
-# Función de filtro de caracteristicas
-
-def variance_threshold(X,th): # recibe el dataframe y el umbral
-    var_thres = VarianceThreshold(threshold=th) # crea la función con base en el umbral
-    var_thres.fit(X) # alimenta los datos con la función creada
-    new_cols = var_thres.get_support() # devuelve las columnas
-    return new_cols
 
 def normalize_dataframe(df):
     # Crear una copia del DataFrame original
@@ -353,21 +346,9 @@ def normalize_dataframe(df):
     
     # Asignar el tipo de normalización
     scaler = MinMaxScaler()
-    
-    # Normalizar los datos
     sv = scaler.fit_transform(df1.iloc[:, :])
     
     # Asignar los nuevos datos al DataFrame
     df1.iloc[:, :] = sv
-    
     # Retornar el DataFrame normalizado
     return df1
-
-# Función de filtro de caracteristicas - stadis. scores
-def select_kbest(X,y,score_f,k): #se establece una funcion que permite sacar varias funciones de evaluacion
-    sel_kb = SelectKBest(score_func=score_f, k=k)
-    sel_kb.fit(X,y)
-    scores = sel_kb.scores_
-    pvalues = sel_kb.pvalues_
-    new_cols = sel_kb.get_support()
-    print("Scores:\n", scores, "\nP-values:\n", pvalues)
