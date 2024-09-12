@@ -33,7 +33,7 @@ def ejecutar_sql (nombre_archivo,cur):
   sql_file.close()
   cur.executescript(sql_as_string)
   
- # Función para imputa variables numéricas
+ # Función para imputar variables numéricas
  
 def imputar_numericas (df,tipo):
 
@@ -352,3 +352,20 @@ def normalize_dataframe(df):
     df1.iloc[:, :] = sv
     # Retornar el DataFrame normalizado
     return df1
+
+#------------- Función para escalar -----------------------------
+
+import pandas as pd
+from sklearn.preprocessing import StandardScaler
+
+def escalar_datos(v_num):
+  
+    scaler = StandardScaler()
+    
+
+    v_num_esc = scaler.fit_transform(v_num)
+    
+
+    v_num_esc = pd.DataFrame(v_num_esc, columns=v_num.columns, index=v_num.index)
+    
+    return v_num_esc
