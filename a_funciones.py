@@ -22,6 +22,8 @@ from sklearn.feature_selection import VarianceThreshold
 from sklearn.feature_selection import SelectKBest, f_regression, mutual_info_regression,  f_classif, mutual_info_classif, chi2
 from sklearn.preprocessing import MinMaxScaler
 
+#Librerías para
+import os
 
 # Las fucniones más útiles para el desarrollo del proyecto están en este script
 
@@ -32,7 +34,28 @@ def ejecutar_sql (nombre_archivo,cur):
   sql_as_string=sql_file.read()
   sql_file.close()
   cur.executescript(sql_as_string)
-  
+
+# Función para consultar y exportar tablas SQL
+def exportar_tabla(nombre_tabla, conn):
+    query = f"SELECT * FROM {nombre_tabla}"
+    df = pd.read_sql_query(query, conn)
+    df.to_csv(f'{nombre_tabla}.csv', index=False)
+    print(f"Tabla {nombre_tabla} exportada exitosamente a CSV.")
+
+def eliminar_archivos(rutas_archivos):
+    """
+    Elimina los archivos especificados en la lista de rutas si existen.
+    
+    :param rutas_archivos: Lista de rutas de archivos a eliminar.
+    """
+    for ruta in rutas_archivos:
+        if os.path.exists(ruta):
+            os.remove(ruta)
+            print(f"Archivo eliminado: {ruta}")
+        else:
+            print(f"El archivo no existe: {ruta}")
+
+
  # Función para imputar variables numéricas
  
 def imputar_numericas (df,tipo):
