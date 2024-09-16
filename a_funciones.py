@@ -27,21 +27,19 @@ import os
 
 # Las fucniones más útiles para el desarrollo del proyecto están en este script
 
-# Función que permite ejecutar un archivo  con extensión .sql que contenga varias consultas
 
+#---------------------------------------Función para ejecutar archivos .sql --------------------------------------------
 def ejecutar_sql (nombre_archivo,cur):
   sql_file=open(nombre_archivo)
   sql_as_string=sql_file.read()
   sql_file.close()
   cur.executescript(sql_as_string)
 
-# Función para consultar y exportar tablas SQL
-def exportar_tabla(nombre_tabla, conn):
-    query = f"SELECT * FROM {nombre_tabla}"
-    df = pd.read_sql_query(query, conn)
-    df.to_csv(f'{nombre_tabla}.csv', index=False)
-    print(f"Tabla {nombre_tabla} exportada exitosamente a CSV.")
 
+#---------------------------------------Función para eliminar archivos--------------------------------------------
+'''
+La función eliminar_archivos borra los archivos que 
+'''
 def eliminar_archivos(rutas_archivos):
     """
     Elimina los archivos especificados en la lista de rutas si existen.
@@ -276,19 +274,6 @@ def line(df, columna1, columna2, titulo, xlabel, ylabel):
         title_x = 0.5)
     fig.show()
     
-# Resumen de tabla sobre calidad de vida
-def table(df1, df2):
-
-    resumen = {
-        'EnviromentSatistaction': [df1['EnvironmentSatisfaction'].mode()[0],df2['EnvironmentSatisfaction'].mode()[0]],
-        'JobSatisfaction': [df1['JobSatisfaction'].mode()[0],df2['JobSatisfaction'].mode()[0]],
-        'WorkLifeBalance': [ df1['WorkLifeBalance'].mode()[0],df2['WorkLifeBalance'].mode()[0]]
-    }
-
-    abstract = pd.DataFrame(resumen, index = ['Renuncian', 'No renuncian'])
-
-    return abstract
-
 #--------- Función para análisis descriptivo -------------
 
 def check_df(dataframe, head=5):
@@ -349,7 +334,47 @@ def plot_categorical_distribution(df, column_name):
     # Mostrar el gráfico
     fig.show()
 
-#----------------- Matriz de correlación v numéricas -----------------
+#Función para el gráfico de la variable de respuesta
+def plot_renuncia_2016(df, columna_renuncia, titulo='Cantidad de Renuncias en 2016'):
+    """
+    Genera un gráfico de barras que muestra la cantidad de renuncias en 2016.
+
+    Parámetros:
+    df (pd.DataFrame): DataFrame que contiene los datos.
+    columna_renuncia (str): Nombre de la columna que contiene la información de renuncias.
+    titulo (str): Título del gráfico (opcional).
+    """
+    # Contar la cantidad de renuncias
+    conteo_renuncia = df[columna_renuncia].value_counts()
+
+    # Definir la paleta de colores
+    colores = sns.color_palette('pastel', len(conteo_renuncia))
+
+    # Crear el gráfico de barras
+    plt.figure(figsize=(8, 6))
+    ax = sns.barplot(x=conteo_renuncia.index, y=conteo_renuncia.values, palette=colores)
+
+    # Configurar etiquetas y título
+    plt.xlabel('Renuncia en 2016')
+    plt.ylabel('Cantidad')
+    plt.title(titulo)
+
+    # Añadir etiquetas a las barras
+    for i, v in enumerate(conteo_renuncia.values):
+        ax.text(i, v + 0.1, str(v), ha='center', va='bottom', fontsize=9)
+
+    # Mostrar el gráfico
+    plt.show()
+
+#Gráficos de variables categóricas vs variable de respuesta
+def plot_categorical_vs_binary(df, v_respuesta, categorical_cols):
+    for col in categorical_cols:
+        plt.figure(figsize=(10, 6))
+        sns.countplot(x=col, hue=v_respuesta, data=df, palette='viridis')
+        plt.title(f'Distribución de {v_respuesta} por {col}')
+        plt.show()
+
+# Función de Matriz de correlación v numéricas
 
 def plot_correlation_matrix(df, columns_num):
     # Calcula la matriz de correlación
@@ -363,32 +388,23 @@ def plot_correlation_matrix(df, columns_num):
 
 #----------------- Métodos de filtrado --------------------------
 
-def normalize_dataframe(df):
-    # Crear una copia del DataFrame original
-    df1 = df.copy(deep=True)
-    
-    # Asignar el tipo de normalización
-    scaler = MinMaxScaler()
-    sv = scaler.fit_transform(df1.iloc[:, :])
-    
-    # Asignar los nuevos datos al DataFrame
-    df1.iloc[:, :] = sv
-    # Retornar el DataFrame normalizado
-    return df1
-
-#------------- Función para escalar -----------------------------
-
-import pandas as pd
-from sklearn.preprocessing import StandardScaler
-
+#Función para el escalado de los datos
 def escalar_datos(v_num):
-  
-    scaler = StandardScaler()
+    sc = StandardScaler()
     
+    x_sc = sc.fit_transform(v_num)
 
-    v_num_esc = scaler.fit_transform(v_num)
+    df_x_sc = pd.DataFrame(x_sc, columns=v_num.columns, index=v_num.index)
     
+    return df_x_sc
 
-    v_num_esc = pd.DataFrame(v_num_esc, columns=v_num.columns, index=v_num.index)
-    
-    return v_num_esc
+# Función recursiva de selección de características
+def recursive_feature_selection(X,y,model,k): # model=modelo que me va a servir de estimador en este caso de regresión logística
+    rfe = RFE(model, n_features_to_select=k, step=1)# step=1 cada cuanto el toma la sucesión de tomar una caracteristica
+    fit = rfe.fit(X, y)
+    X_new = fit.support_
+    print("Num Features: %s" % (fit.n_features_))
+    print("Selected Features: %s" % (fit.support_))
+    print("Feature Ranking: %s" % (fit.ranking_))
+
+    return X_new
