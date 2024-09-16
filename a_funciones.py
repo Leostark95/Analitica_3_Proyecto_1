@@ -278,6 +278,7 @@ def plot_renuncia_2016(df, columna_renuncia, titulo='Cantidad de Renuncias en 20
 
     # Mostrar el gráfico
     plt.show()
+    return None
 
 #Gráficos de variables categóricas vs variable de respuesta
 def plot_categorical_vs_binary(df, v_respuesta, categorical_cols):
