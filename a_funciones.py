@@ -128,51 +128,6 @@ def medir_modelos(modelos,scoring,X,y,cv):
     metric_modelos.columns=["logistic_r","reg_lineal","rf_classifier","decision_tree","random_forest","gradient_boosting""sgd_classifier","xgboost_classifier"]
     return metric_modelos
 
-
-# Cargar y procesar nuevos datos (Transformación)
-
-# Cargar y procesar nuevos datos (Transformación)
-def preparar_datos (df):
-
-    # Cargar modelo y listas
-    list_cat = joblib.load('Salidas/list_cat.pkl')
-    list_dummies = joblib.load('Salidas/list_dummies.pkl')
-    var_names = joblib.load('Salidas/var_names.pkl')
-    scaler = joblib.load( 'Salidas/scaler.pkl') 
-
-    # Recategorización de variables
-    clasificador_education(df, 'EducationField')
-    clasificador_jobrole(df,'JobRole')
-    df.drop(['EducationField','JobRole'], axis = 1, inplace = True)
-
-    # Ejecutar funciones de transformaciones
-    df = imputar_f(df, list_cat)
-
-    df_dummies = pd.get_dummies(df, columns = list_dummies, dtype = int)
-    df_dummies = df_dummies.loc[:,~df_dummies.columns.isin(['EmployeeID'])]
-
-    # Ordenamos las variables en el orden de entrenamiento del escalar
-    df_dummies = df_dummies.reindex(['Age', 'DistanceFromHome', 'Education', 'JobLevel', 'MonthlyIncome',
-       'NumCompaniesWorked', 'PercentSalaryHike', 'StockOptionLevel',
-       'TotalWorkingYears', 'TrainingTimesLastYear', 'YearsAtCompany',
-       'YearsSinceLastPromotion', 'YearsWithCurrManager',
-       'EnvironmentSatisfaction', 'JobSatisfaction', 'WorkLifeBalance',
-       'JobInvolvement', 'PerformanceRating', 'BusinessTravel_Non-Travel',
-       'BusinessTravel_Travel_Frequently', 'BusinessTravel_Travel_Rarely',
-       'Department_Human Resources', 'Department_Research & Development',
-       'Department_Sales', 'Gender_Female', 'Gender_Male',
-       'MaritalStatus_Divorced', 'MaritalStatus_Married',
-       'MaritalStatus_Single', 'education_sector_Human Resources',
-       'education_sector_Research','education_sector_Marketing',
-       'job_rol_Research & Development', 'job_rol_Human Resources',
-       'job_rol_Manager', 'job_rol_Sales'], axis = 1)
-
-    X2 = scaler.transform(df_dummies)
-    X = pd.DataFrame(X2, columns = df_dummies.columns)
-    X = X[var_names]
-    
-    return X
-
 # Convertir el tipo de dato a fecha
 
 def convertir_fecha(dataframe, columna):
@@ -180,48 +135,6 @@ def convertir_fecha(dataframe, columna):
     dataframe[columna] = pd.to_datetime(dataframe[columna])
 
     return dataframe.info()
-
-# Recategorización de variables por departamentos dado el Rol de trabajo
-
-def clasificador_jobrole(df, nombre_columna):
-    df[nombre_columna] = df[nombre_columna].astype('category')
-
-    # Definimos las categorías y cómo las vamos a recategorizar 
-    diccionario_rol = {
-        'Healthcare Representative': 'Research & Development',
-        'Research Scientist': 'Research & Development',
-        'Sales Executive': 'Sales',
-        'Human Resources': 'Human Resources',
-        'Research Director': 'Research & Development',
-        'Laboratory Technician': 'Research & Development',
-        'Manufacturing Director': 'Research & Development',
-        'Sales Representative': 'Sales',
-        'Manager': 'Manager'
-    }
-
-    # Creamos una columna nueva que contenga la recategorización 
-    df["job_rol"] = df[nombre_columna].replace(diccionario_rol)
-
-    return df
-
-# Recategorización de variables por departamentos dado la educación
-def clasificador_education(df, nombre_columna):
-    df[nombre_columna] = df[nombre_columna].astype('category')
-
-    # Definimos las categorías y cómo las vamos a recategorizar 
-    diccionario_educacion = {
-        'Life Sciences': 'Research',
-        'Other': 'Research',
-        'Medical': 'Research',
-        'Technical Degree': 'Research',
-        'Marketing': 'Marketing',
-        'Human Resources': 'Human Resources',
-    }
-
-    # Creamos una columna nueva que contenga la recategorización 
-    df["education_sector"] = df[nombre_columna].replace(diccionario_educacion)
-
-    return df
 
 # RFE para la selección de variables para distintos modelos
 
@@ -408,3 +321,32 @@ def recursive_feature_selection(X,y,model,k): # model=modelo que me va a servir 
     print("Feature Ranking: %s" % (fit.ranking_))
 
     return X_new
+
+#Función para el tratamiento de datos
+def preparar_datos(df, columnas_selec):
+
+    # 1. Eliminar datos faltantes
+    df = df.dropna()
+
+    #2. Transformar variables numéricas a categóricas
+    list_cat = ['BusinessTravel', 'Department', 'JobRole',
+                'JobSatisfaction', 'WorkLifeBalance', 'Education']
+    
+    for i in list_cat:
+        df[i] = df[i].astype(str)
+    
+    # 2. Escalar variables numéricas
+    list_num = ['Age', 'DistanceFromHome', 'MonthlyIncome', 
+              'NumCompaniesWorked', 'TrainingTimesLastYear', 'YearsAtCompany',
+              'YearsSinceLastPromotion','PercentSalaryHike']
+    
+    x_num =df[list_num]
+    df_norm = escalar_datos(x_num)
+
+    # 4. Convertir variables categóricas a Dummis
+    dummi = pd.get_dummies(df, columns=list_cat)
+
+    # 5. Seleccionar las variables
+    df_final = pd.concat([df_norm,dummi,df['EmployeeID']], axis = 1)
+
+    return df
