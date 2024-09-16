@@ -328,12 +328,18 @@ def preparar_datos(df, columnas_selec):
     # 1. Eliminar datos faltantes
     df = df.dropna()
 
+    # Transformar EmployeeID y PercentSalaryHike
+    df['EmployeeID'] = df['EmployeeID'].astype(str)
+    df['PercentSalaryHike'] = df['PercentSalaryHike']/100
+
     #2. Transformar variables numéricas a categóricas
     list_cat = ['BusinessTravel', 'Department', 'JobRole',
                 'JobSatisfaction', 'WorkLifeBalance', 'Education']
     
     for i in list_cat:
         df[i] = df[i].astype(str)
+    
+   
     
     # 2. Escalar variables numéricas
     list_num = ['Age', 'DistanceFromHome', 'MonthlyIncome', 
@@ -347,6 +353,6 @@ def preparar_datos(df, columnas_selec):
     dummi = pd.get_dummies(df, columns=list_cat)
 
     # 5. Seleccionar las variables
-    df_final = pd.concat([df_norm,dummi,df['EmployeeID']], axis = 1)
+    df_final = pd.concat([df['EmployeeID'],df_norm,dummi], axis = 1)
 
     return df
