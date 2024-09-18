@@ -18,22 +18,19 @@ if __name__=="__main__":
     curr.close()
     # Leer datos para 2016 
     df_2016 = pd.read_sql("""
-        SELECT EmployeeID, Age, BusinessTravel, Department, DistanceFromHome,
-            Education, JobRole, MonthlyIncome, NumCompaniesWorked,
-            PercentSalaryHike, TrainingTimesLastYear, YearsAtCompany,
-            YearsSinceLastPromotion, EnvironmentSatisfaction, JobSatisfaction,
-            WorkLifeBalance, JobInvolvement, PerformanceRating 
-        FROM processed_data_2016
+        SELECT * FROM processed_data_2016
         """, conn)
-    v_selc = pd.read_sql("Select * From v_seleccionadas", conn)
+
 
  ####Otras transformaciones en python (imputación, dummies y seleccion de variables)
-    df_t= funciones.preparar_datos(df_2016,v_selc)
+
+    df_t= funciones.preparar_datos(df_2016)
+    df_t
 
 
     ##Cargar modelo y predecir
-    m_lreg = joblib.load("salidas\\modelo.pkl")
-    predicciones=m_lreg.predict(df_t)
+    m_rfc = joblib.load("salidas\\m_rfc.pkl")
+    predicciones=m_rfc.predict(df_t)
     pd_pred=pd.DataFrame(predicciones, columns=['pred_renuncia_2017'])
 
 
@@ -47,14 +44,47 @@ if __name__=="__main__":
 
     ####ver_predicciones_bajas ###
     # Filtrar empleados con más del 80% de probabilidad de retirarse
-    empleados_riesgo_alto = perf_pred[perf_pred['pred_perf_2024'] > 0.80]
+    empleados_riesgo_alto = perf_pred[perf_pred['pred_renuncia_2017'] > 0.80]
 
     # Mostrar los empleados con alto riesgo de retiro
     print(empleados_riesgo_alto)
     
-    coeficientes=pd.DataFrame( np.append(m_lreg.intercept_,m_lreg.coef_) , columns=['coeficientes'])  ### agregar coeficientes
-   
-    empleados_riesgo_alto.to_excel("salidas\\prediccion.xlsx")   #### exportar predicciones mas bajas y variables explicativas
-    coeficientes.to_excel("salidas\\coeficientes.xlsx") ### exportar coeficientes para analizar predicciones
-    
+    importances = m_rfc.feature_importances_
+    columnas = df_t.columns
+    coeficientes = pd.DataFrame({'caracteristicas': columnas, 'importancia': importances})
+    coeficientes.to_excel("salidas\\importancia_caracteristicas.xlsx", index=False)
 
+    # Exportar predicciones más bajas y variables explicativas
+    empleados_riesgo_alto.to_excel("salidas\\prediccion.xlsx", index=False)
+
+'''
+importancia_caracteristicas.xlsx
+Contenido: Este archivo contiene la importancia de cada una de las variables (características) utilizadas en el modelo de bosque aleatorio (RandomForestClassifier). La importancia indica cuánto contribuye cada característica a las predicciones del modelo.
+
+Columnas:
+
+caracteristicas: El nombre de cada variable utilizada en el modelo.
+importancia: Un valor numérico que representa la importancia relativa de cada característica para hacer las predicciones.
+Utilidad:
+
+Puedes utilizar este archivo para analizar qué variables son más relevantes para la predicción de la renuncia de los empleados.
+Este análisis puede ayudar a enfocar futuros esfuerzos en las variables más importantes y a descartar aquellas que tienen poca influencia en el modelo.
+También puede ayudarte a comprender mejor el comportamiento del modelo y justificar decisiones basadas en los resultados obtenidos.
+2. prediccion.xlsx
+Contenido: Este archivo contiene las predicciones del modelo para los empleados de 2016, junto con su EmployeeID y las características que se usaron en el modelo. También filtra a los empleados con más del 80% de probabilidad de renunciar.
+
+Columnas:
+
+EmployeeID: El identificador único de cada empleado.
+pred_renuncia_2017: La predicción del modelo sobre si el empleado renunciará en 2017 (generalmente con 1 indicando "sí" y 0 indicando "no").
+Otros: Las columnas correspondientes a las variables utilizadas en el modelo.
+Utilidad:
+
+Este archivo te permite identificar a los empleados en riesgo de renunciar según las predicciones del modelo. Puedes enfocarte en aquellos con más del 80% de probabilidad de renunciar.
+La empresa puede usar esta información para tomar acciones preventivas, como intervenciones de recursos humanos, mejoras en el ambiente laboral o programas de retención.
+También sirve para monitorear la precisión de las predicciones y verificar si coinciden con la realidad.
+Acciones que puedes tomar con estos archivos:
+Análisis de importancia de características: Usa el archivo importancia_caracteristicas.xlsx para identificar las variables más influyentes y optimizar futuros modelos o intervenciones en la empresa.
+Prevención de renuncias: A partir de prediccion.xlsx, puedes focalizar esfuerzos en los empleados de mayor riesgo y tomar decisiones informadas para mejorar la retención del personal.
+Revisión del modelo: Con el archivo de predicciones puedes verificar si los resultados son coherentes y ajustar el modelo si es necesario.
+'''

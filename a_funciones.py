@@ -24,6 +24,7 @@ from sklearn.preprocessing import MinMaxScaler
 
 #Librerías para
 import os
+import joblib
 
 # Las fucniones más útiles para el desarrollo del proyecto están en este script
 
@@ -70,6 +71,7 @@ def imputar_numericas (df,tipo):
         df[numericas]=imp_mean.fit_transform(df[numericas])
         return df
 
+
 # Función para imputar variables categóricas y numéricas
 
 def imputar_f (df,list_cat):  
@@ -100,35 +102,6 @@ def imputar_f (df,list_cat):
     
     return df
 
-# Función para seleccionar modelos
-
-def sel_variables(modelos,X,y,threshold):
-    
-    var_names_ac=np.array([])
-    for modelo in modelos:
-        #modelo=modelos[i]
-        modelo.fit(X, y)
-        sel=SelectFromModel(modelo, prefit = True, threshold=threshold)
-        var_names=modelo.feature_names_in_[sel.get_support()]
-        var_names_ac=np.append(var_names_ac, var_names)
-        var_names_ac=np.unique(var_names_ac)
-    
-    return var_names_ac
-
-# Función para validar el rendimiento de los modelos
-
-def medir_modelos(modelos,scoring,X,y,cv):
-
-    metric_modelos=pd.DataFrame()
-    for modelo in modelos:
-        scores=cross_val_score(modelo,X,y,scoring=scoring,cv=cv )
-        pdscores=pd.DataFrame(scores)
-        metric_modelos=pd.concat([metric_modelos, pdscores],axis=1)
-    
-    metric_modelos.columns=["logistic_r","reg_lineal","rf_classifier","decision_tree","random_forest","gradient_boosting""sgd_classifier","xgboost_classifier"]
-    return metric_modelos
-
-# Convertir el tipo de dato a fecha
 
 def convertir_fecha(dataframe, columna):
 
@@ -323,37 +296,38 @@ def recursive_feature_selection(X,y,model,k): # model=modelo que me va a servir 
 
     return X_new
 
-#Función para el tratamiento de datos
-def preparar_datos(df, columnas_selec):
+# Función para el tratamiento de datos
+def preparar_datos(df):
 
-    # 1. Eliminar datos faltantes
+    #### Cargar listas y scaler
+    list_num = joblib.load("salidas\\list_num.pkl")  # Lista de variables numéricas
+    list_dummi = joblib.load("salidas\\list_dummi.pkl")  # Lista de variables categóricas para dummizar
+    var_names = joblib.load("salidas\\var_names.pkl")  # Lista de nombres de variables finales
+    scaler = joblib.load("salidas\\scaler.pkl")  # Standarescaler
+
+    # 1. Eliminar filas con datos faltantes
     df = df.dropna()
+    # 2. Transformar variables 'EmployeeID' y 'PercentSalaryHike'
+    df['EmployeeID'] = df['EmployeeID'].astype(str)  # Convertir 'EmployeeID' a string
+    df['PercentSalaryHike'] = df['PercentSalaryHike'] / 100  # Escalar 'PercentSalaryHike' dividiendo por 100
 
-    # Transformar EmployeeID y PercentSalaryHike
-    df['EmployeeID'] = df['EmployeeID'].astype(str)
-    df['PercentSalaryHike'] = df['PercentSalaryHike']/100
+    # 3. Transformar variables categóricas a string para poder aplicar get_dummies
+    for col in list_dummi:
+        df[col] = df[col].astype(str)
 
-    #2. Transformar variables numéricas a categóricas
-    list_cat = ['BusinessTravel', 'Department', 'JobRole',
-                'JobSatisfaction', 'WorkLifeBalance', 'Education']
-    
-    for i in list_cat:
-        df[i] = df[i].astype(str)
-    
-   
-    
-    # 2. Escalar variables numéricas
-    list_num = ['Age', 'DistanceFromHome', 'MonthlyIncome', 
-              'NumCompaniesWorked', 'TrainingTimesLastYear', 'YearsAtCompany',
-              'YearsSinceLastPromotion','PercentSalaryHike']
-    
-    x_num =df[list_num]
-    df_norm = escalar_datos(x_num)
+    # 4. Convertir variables categóricas en variables dummy
+    df_dummies = df[list_dummi]
+    df_dummies = pd.get_dummies(df_dummies)
 
-    # 4. Convertir variables categóricas a Dummis
-    dummi = pd.get_dummies(df, columns=list_cat)
+    # 5. Escalar las variables numéricas
+    x_num = df[list_num]  # Seleccionar las columnas numéricas
+    x_scaled = scaler.fit_transform(x_num) # Aplicar el escalador preentrenado
+    df_scaled = pd.DataFrame(x_scaled, columns=list_num)  # Crear DataFrame escalado con las columnas numéricas
 
-    # 5. Seleccionar las variables
-    df_final = pd.concat([df['EmployeeID'],df_norm,dummi], axis = 1)
+    # 6. Concatenar las variables escaladas y las variables dummizadas
+    df_final = pd.concat([df[['EmployeeID']], df_scaled, df_dummies], axis=1)
 
-    return df
+    # 7. Seleccionar las variables finales especificadas en var_names
+    df_final = df_final[var_names]
+
+    return df_final
