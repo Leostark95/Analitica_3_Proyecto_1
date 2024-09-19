@@ -29,7 +29,7 @@ if __name__=="__main__":
 
 
     ##Cargar modelo y predecir
-    m_rfc = joblib.load("salidas\\m_rfc.pkl")
+    m_rfc = joblib.load("salidas\\rf_final.pkl")
     predicciones=m_rfc.predict(df_t)
     pd_pred=pd.DataFrame(predicciones, columns=['pred_renuncia_2017'])
 
@@ -44,7 +44,7 @@ if __name__=="__main__":
 
     ####ver_predicciones_bajas ###
     # Filtrar empleados con más del 80% de probabilidad de retirarse
-    empleados_riesgo_alto = perf_pred[perf_pred['pred_renuncia_2017'] > 0.80]
+    empleados_riesgo_alto = perf_pred[perf_pred['pred_renuncia_2017']>0.8]
 
     # Mostrar los empleados con alto riesgo de retiro
     print(empleados_riesgo_alto)
