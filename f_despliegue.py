@@ -45,14 +45,5 @@ if __name__=="__main__":
     # Exportar los IDs de los empleados y la variable pred_renuncia_2017
     rol_critico[['EmployeeID', 'pred_renuncia_2017']].to_excel(f"salidas/predicciones.xlsx", index=False)
 
-
-    # Obtener importancias del modelo
-    importances = m_rfc.feature_importances_
-    columnas = df_t.columns
-    coeficientes = pd.DataFrame({'caracteristicas': columnas, 'importancia': importances})
-
-    # Guardar las características importantes
-    coeficientes.to_excel("salidas/importancia_caracteristicas.xlsx", index=False)
-
     # Cerrar cursor
     curr.close()
