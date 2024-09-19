@@ -259,6 +259,7 @@ def plot_categorical_vs_binary(df, v_respuesta, categorical_cols):
         plt.figure(figsize=(10, 6))
         sns.countplot(x=col, hue=v_respuesta, data=df, palette='viridis')
         plt.title(f'Distribución de {v_respuesta} por {col}')
+        plt.xticks(rotation=45, ha="right")
         plt.show()
 
 # Función de Matriz de correlación v numéricas
@@ -331,3 +332,42 @@ def preparar_datos(df):
     df_final = df_final[var_names]
 
     return df_final
+
+def empleados_criticos(df_predic, job_roles):
+    """
+    Identifica el rol con el mayor promedio de renuncias y exporta los empleados que se van a retirar.
+    
+    Args:
+        perf_pred (pd.DataFrame): DataFrame que contiene los datos de empleados.
+        job_roles (list): Lista de nombres de columnas para los roles de trabajo.
+    
+    Returns:
+        None
+    """
+    # Crear un diccionario para almacenar el promedio de renuncias por rol
+    promedio_renuncias = {}
+    
+    for role in job_roles:
+        # Filtrar datos por el JobRole actual
+        empleados_criticos = df_predic[df_predic[role] == 1]
+        
+        # Calcular el promedio de renuncias
+        promedio = empleados_criticos['pred_renuncia_2017'].mean()
+        promedio_renuncias[role] = promedio
+    
+    # Encontrar el rol con el mayor promedio de renuncias
+    rol_mayor_renuncia = max(promedio_renuncias, key=promedio_renuncias.get)
+    return rol_mayor_renuncia
+    print(f"El rol con mayor promedio de renuncias es: {rol_mayor_renuncia}")
+    
+    # Filtrar datos por el rol con mayor promedio de renuncias
+    empleados_criticos_mayor_renuncia = perf_pred[perf_pred[rol_mayor_renuncia] == 1]
+    empleados_criticos_mayor_renuncia = empleados_criticos_mayor_renuncia[
+        empleados_criticos_mayor_renuncia['pred_renuncia_2017'] == 1
+    ]
+    
+    # Exportar los IDs de los empleados y la variable pred_renuncia_2017
+    archivo_salida = f"salidas/empleados_criticos_{rol_mayor_renuncia.replace(' ', '_').replace('JobRole_', '')}.xlsx"
+    empleados_criticos_mayor_renuncia[['EmployeeID', 'pred_renuncia_2017']].to_excel(archivo_salida, index=False)
+    print(f"Archivo exportado: {archivo_salida}")
+

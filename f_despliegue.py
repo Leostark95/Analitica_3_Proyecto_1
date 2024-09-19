@@ -21,9 +21,7 @@ if __name__=="__main__":
         SELECT * FROM processed_data_2016
         """, conn)
 
-
- ####Otras transformaciones en python (imputación, dummies y seleccion de variables)
-
+    #Preparar los datos para poder realizar las predicciones.
     df_t= funciones.preparar_datos(df_2016)
     df_t
 
@@ -41,22 +39,33 @@ if __name__=="__main__":
     ####LLevar a BD para despliegue 
     perf_pred.loc[:,['EmployeeID', 'pred_renuncia_2017']].to_sql("perf_pred",conn,if_exists="replace") ## llevar predicciones a BD con ID Empleados
     
-
-    ####ver_predicciones_bajas ###
-    # Filtrar empleados con más del 80% de probabilidad de retirarse
-    empleados_riesgo_alto = perf_pred[perf_pred['pred_renuncia_2017']>0.8]
-
-    # Mostrar los empleados con alto riesgo de retiro
-    print(empleados_riesgo_alto)
+    #Definir los roles que mayor renuncias se apreciaron en el análisis exploratorio
+    job_roles = ['JobRole_Research Scientist', 'JobRole_Sales Executive', 
+                'JobRole_Laboratory Technician']
     
+    #Se halla el rol con el mayor promedio de renuncias.
+    rol_mayor_renuncia = funciones.empleados_criticos(perf_pred,job_roles)
+    print(f'El rol con mayor promedio de reniuncias es {rol_mayor_renuncia}')
+
+    #Solo guardar los valores de los empleados que tienen el rol más critico
+    rol_critico = perf_pred[perf_pred[rol_mayor_renuncia] == 1]
+
+    # Exportar los IDs de los empleados y la variable pred_renuncia_2017
+    rol_critico[['EmployeeID', 'pred_renuncia_2017']].to_excel(f"salidas/predicciones.xlsx", index=False)
+
+
+    # Obtener importancias del modelo
     importances = m_rfc.feature_importances_
     columnas = df_t.columns
     coeficientes = pd.DataFrame({'caracteristicas': columnas, 'importancia': importances})
-    coeficientes.to_excel("salidas\\importancia_caracteristicas.xlsx", index=False)
 
-    # Exportar predicciones más bajas y variables explicativas
-    empleados_riesgo_alto.to_excel("salidas\\prediccion.xlsx", index=False)
+    # Guardar las características importantes
+    coeficientes.to_excel("salidas/importancia_caracteristicas.xlsx", index=False)
 
+    # Cerrar cursor
+    curr.close()
+
+        
 '''
 importancia_caracteristicas.xlsx
 Contenido: Este archivo contiene la importancia de cada una de las variables (características) utilizadas en el modelo de bosque aleatorio (RandomForestClassifier). La importancia indica cuánto contribuye cada característica a las predicciones del modelo.
