@@ -274,31 +274,4 @@ def preparar_datos(df):
 
     return df_final
 
-#------------------------ Despliegue de resultados -----------------------------
-#Función para conocer el rol con más retiros
-def empleados_criticos(df_predic, job_roles):
-    """
-    Identifica el rol con el mayor promedio de renuncias y exporta los empleados que se van a retirar.
-    Recibe como argumentos un dataframe de predicciones y la lista de los jobs_roles que se observaron en 
-    el análisis exploratorio.
-        perf_pred (pd.DataFrame): DataFrame que contiene los datos de empleados.
-        job_roles (list): Lista de nombres de columnas para los roles de trabajo.
-    
-    Retorna: el rol con el mayor número de renuncias.
-    """
-    # Crear un diccionario para almacenar el promedio de renuncias por rol
-    promedio_renuncias = {}
-    
-    for role in job_roles:
-        # Filtrar datos por el JobRole actual
-        empleados_criticos = df_predic[df_predic[role] == 1]
-        
-        # Calcular el promedio de renuncias
-        promedio = empleados_criticos['pred_renuncia_2017'].mean()
-        promedio_renuncias[role] = promedio
-    
-    # Encontrar el rol con el mayor promedio de renuncias
-    rol_mayor_renuncia = max(promedio_renuncias, key=promedio_renuncias.get)
-
-    return rol_mayor_renuncia
 

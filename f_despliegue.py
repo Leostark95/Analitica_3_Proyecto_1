@@ -39,16 +39,8 @@ if __name__=="__main__":
     ####LLevar a BD para despliegue 
     perf_pred.loc[:,['EmployeeID', 'pred_renuncia_2017']].to_sql("perf_pred",conn,if_exists="replace") ## llevar predicciones a BD con ID Empleados
     
-    #Definir los roles que mayor renuncias se apreciaron en el análisis exploratorio
-    job_roles = ['JobRole_Research Scientist', 'JobRole_Sales Executive', 
-                'JobRole_Laboratory Technician']
-    
-    #Se halla el rol con el mayor promedio de renuncias.
-    rol_mayor_renuncia = funciones.empleados_criticos(perf_pred,job_roles)
-    print(f'El rol con mayor promedio de reniuncias es {rol_mayor_renuncia}')
-
-    #Solo guardar los valores de los empleados que tienen el rol más critico
-    rol_critico = perf_pred[perf_pred[rol_mayor_renuncia] == 1]
+    #Solo guardar los valores de los empleados que tienen el rol Sales Executive
+    rol_critico = perf_pred[perf_pred['JobRole_Sales Executive'] == 1]
 
     # Exportar los IDs de los empleados y la variable pred_renuncia_2017
     rol_critico[['EmployeeID', 'pred_renuncia_2017']].to_excel(f"salidas/predicciones.xlsx", index=False)
@@ -64,36 +56,3 @@ if __name__=="__main__":
 
     # Cerrar cursor
     curr.close()
-
-        
-'''
-importancia_caracteristicas.xlsx
-Contenido: Este archivo contiene la importancia de cada una de las variables (características) utilizadas en el modelo de bosque aleatorio (RandomForestClassifier). La importancia indica cuánto contribuye cada característica a las predicciones del modelo.
-
-Columnas:
-
-caracteristicas: El nombre de cada variable utilizada en el modelo.
-importancia: Un valor numérico que representa la importancia relativa de cada característica para hacer las predicciones.
-Utilidad:
-
-Puedes utilizar este archivo para analizar qué variables son más relevantes para la predicción de la renuncia de los empleados.
-Este análisis puede ayudar a enfocar futuros esfuerzos en las variables más importantes y a descartar aquellas que tienen poca influencia en el modelo.
-También puede ayudarte a comprender mejor el comportamiento del modelo y justificar decisiones basadas en los resultados obtenidos.
-2. prediccion.xlsx
-Contenido: Este archivo contiene las predicciones del modelo para los empleados de 2016, junto con su EmployeeID y las características que se usaron en el modelo. También filtra a los empleados con más del 80% de probabilidad de renunciar.
-
-Columnas:
-
-EmployeeID: El identificador único de cada empleado.
-pred_renuncia_2017: La predicción del modelo sobre si el empleado renunciará en 2017 (generalmente con 1 indicando "sí" y 0 indicando "no").
-Otros: Las columnas correspondientes a las variables utilizadas en el modelo.
-Utilidad:
-
-Este archivo te permite identificar a los empleados en riesgo de renunciar según las predicciones del modelo. Puedes enfocarte en aquellos con más del 80% de probabilidad de renunciar.
-La empresa puede usar esta información para tomar acciones preventivas, como intervenciones de recursos humanos, mejoras en el ambiente laboral o programas de retención.
-También sirve para monitorear la precisión de las predicciones y verificar si coinciden con la realidad.
-Acciones que puedes tomar con estos archivos:
-Análisis de importancia de características: Usa el archivo importancia_caracteristicas.xlsx para identificar las variables más influyentes y optimizar futuros modelos o intervenciones en la empresa.
-Prevención de renuncias: A partir de prediccion.xlsx, puedes focalizar esfuerzos en los empleados de mayor riesgo y tomar decisiones informadas para mejorar la retención del personal.
-Revisión del modelo: Con el archivo de predicciones puedes verificar si los resultados son coherentes y ajustar el modelo si es necesario.
-'''
