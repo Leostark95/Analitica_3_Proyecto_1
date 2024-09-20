@@ -15,7 +15,6 @@ if __name__=="__main__":
     conn = sql.connect('data/my_database.db')
     curr = conn.cursor()
 
-    curr.close()
     # Leer datos para 2016 
     df_2016 = pd.read_sql("""
         SELECT * FROM processed_data_2016
